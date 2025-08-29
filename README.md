@@ -1,5 +1,12 @@
 # React Base Wesite ready to go.
 
+```bash
+git clone https://github.com/aurelien404/React-Start-Base.git
+cd React-Start-Base
+npm install
+npm run dev
+```
+
 ## Install reaact from vite
 
 ```bash
