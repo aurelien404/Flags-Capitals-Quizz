@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router";
 import "./index.css";
+import "./i18n";
 
 import Header from "./components/Header.jsx";
 
