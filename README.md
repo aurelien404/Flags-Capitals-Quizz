@@ -22,5 +22,6 @@ https://tailwindcss.com/docs/installation/using-vite
 - npm install i18next-http-backend
 - npm install react-i18next i18next --save
 
-npm install i18next-localstorage-backend i18next-browser-languagedetector i18next-http-backend react-i18next i18next
 https://www.i18next.com/overview/first-setup-help
+
+npm install @tailwindcss/vite i18next-localstorage-backend i18next-browser-languagedetector i18next-http-backend react-i18next i18next
