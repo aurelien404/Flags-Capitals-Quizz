@@ -1,12 +1,25 @@
-# React + Vite
+# React Base Wesite ready to go.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Install reaact from vite
 
-Currently, two official plugins are available:
+npm create vite@latest
+https://vite.dev/guide/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## React router dom
 
-## Expanding the ESLint configuration
+npm i react-router
+https://reactrouter.com/start/declarative/installation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tailwindcss
+
+npm install tailwindcss @tailwindcss/vite
+https://tailwindcss.com/docs/installation/using-vite
+
+## I18Next
+
+npm install i18next-localstorage-backend
+npm install i18next-browser-languagedetector
+npm install i18next-http-backend
+npm install react-i18next i18next --save
+
+https://www.i18next.com/overview/first-setup-help
