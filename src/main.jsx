@@ -13,8 +13,8 @@ createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <Header />
     <Routes>
-      <Route path="/app" element={<App />} />
       <Route path="/" element={<Home />} />
+      <Route path="/app" element={<App />} />
       <Route path="/contact" element={<Contact />} />
     </Routes>
   </BrowserRouter>

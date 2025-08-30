@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 
 function Header() {
   const { t, i18n } = useTranslation();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const headerRef = useRef(null);
 
@@ -16,7 +16,7 @@ function Header() {
     ) {
       setIsVisible(true);
     } else {
-      setIsVisible(false);
+      setIsVisible(true);
     }
 
     setLastScrollY(currentScrollY);
