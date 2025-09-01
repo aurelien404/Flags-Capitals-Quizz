@@ -13,7 +13,7 @@
   --color-zzlighthighcontrast: #e4e4e4;
   --color-zzlightlowcontrast: #dedede;
 
-  --color-zzlink: #6b87ad;
+  --color-zzlink: hsl(228, 51%, 60%);
 }
 
 .Zscreen {

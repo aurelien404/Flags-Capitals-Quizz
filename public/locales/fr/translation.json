@@ -1,0 +1,13 @@
+{
+  "title": "Quiz sur les capitales du monde",
+  "description": "Testez vos compétences en géographie en associant les pays à leurs capitales.",
+  "erroranswer": "Question introuvable à l’index",
+  "completed": "Quiz terminé !",
+  "english": "Pays et Capitales en Englais",
+  "francais": "Pays et Capitales en Francais",
+  "1": "Vous avez obtenu",
+  "2": "sur",
+  "3": "bonnes réponses.",
+  "restart": "Recommencer le quiz",
+  "answer": "Quelle est la capitale de"
+}

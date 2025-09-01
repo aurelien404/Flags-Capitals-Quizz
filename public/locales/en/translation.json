@@ -1,0 +1,13 @@
+{
+  "title": "World Capitals Quiz",
+  "description": "Test your geography skills by matching countries to their capitals.",
+  "erroranswer": "Question not found at index",
+  "completed": "Quiz Completed!",
+  "english": "Countries and Capitals in English",
+  "francais": "Countries and Capitals in French",
+  "1": "You got",
+  "2": "out of",
+  "3": "correct.",
+  "restart": "Restart Quiz",
+  "answer": "What's the capital of"
+}

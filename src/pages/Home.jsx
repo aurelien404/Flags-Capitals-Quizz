@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FiMoon } from "react-icons/fi";
 import { GrSun } from "react-icons/gr";
 
@@ -13,6 +14,9 @@ function getUniqueRandomIndex(usedIndices, max) {
 }
 
 function Quiz() {
+  const { t, i18n } = useTranslation();
+  const maxQuestions = 20;
+
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined") {
       return (
@@ -25,17 +29,10 @@ function Quiz() {
     return "light";
   });
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(theme);
-    localStorage.theme = theme;
-  }, [theme]);
-
+  const [selectedLang, setSelectedLang] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [score, setScore] = useState(0);
-  const maxQuestions = 20;
-
   const [questions, setQuestions] = useState([]);
   const [usedIndices, setUsedIndices] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(null);
@@ -45,61 +42,44 @@ function Quiz() {
   });
   const [reset, setReset] = useState(false);
 
-  // Fetch and prepare questions
+  // Theme effect
   useEffect(() => {
-    fetch("/api/questions")
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+    localStorage.theme = theme;
+  }, [theme]);
+
+  // Fetch questions when language is selected
+  useEffect(() => {
+    if (!selectedLang) return;
+
+    const fileMap = { en: "countries", fr: "pays" };
+    const fileName = fileMap[selectedLang];
+
+    fetch(`/api/${fileName}`)
       .then((res) => res.json())
       .then((data) => {
-        function shuffleQuestion(array) {
-          const result = [...array];
-          for (let i = result.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [result[i], result[j]] = [result[j], result[i]];
-          }
-          return result;
+        const shuffled = shuffleQuestions(data, maxQuestions);
+        const randomizedData = randomizeOptions(shuffled);
+
+        if (!randomizedData.length) {
+          console.warn("No questions available");
+          setLoading(false);
+          return;
         }
 
-        const shuffled = shuffleQuestion(data).slice(0, maxQuestions);
-
-        // Shuffle function for options
-        const shuffleArray = (array) =>
-          array
-            .map((value) => ({ value, sort: Math.random() }))
-            .sort((a, b) => a.sort - b.sort)
-            .map(({ value }) => value);
-
-        const randomizedData = shuffled.map((q) => ({
-          ...q,
-          options: shuffleArray([...q.options]), // 👈 true random shuffle here
-        }));
-
         setQuestions(randomizedData);
+        const firstIndex = getUniqueRandomIndex([], randomizedData.length);
+        if (firstIndex !== null) {
+          setCurrentIndex(firstIndex);
+          setUsedIndices([firstIndex]);
+          setGameStarted(true);
+        }
       })
-      .catch((err) => console.error("Error fetching questions:", err));
-  }, []);
-
-  // Start the game and pick the first question
-  const handleStart = () => {
-    const firstIndex = getUniqueRandomIndex([], questions.length);
-    if (firstIndex !== null) {
-      setCurrentIndex(firstIndex);
-      setUsedIndices([firstIndex]);
-      setGameStarted(true);
-    }
-  };
-
-  // Go to next question
-  const goToNextQuestion = () => {
-    if (usedIndices.length >= maxQuestions) return;
-
-    const nextIndex = getUniqueRandomIndex(usedIndices, questions.length);
-    if (nextIndex !== null) {
-      setCurrentIndex(nextIndex);
-      setUsedIndices((prev) => [...prev, nextIndex]);
-      setAnswered({ status: "unanswered", selected: null });
-      setReset(false);
-    }
-  };
+      .catch((err) => console.error(`Error loading ${fileName}:`, err))
+      .finally(() => setLoading(false));
+  }, [selectedLang]);
 
   // Auto-advance after answering
   useEffect(() => {
@@ -113,18 +93,55 @@ function Quiz() {
     }
   }, [answered]);
 
-  // Handle answer selection
-  const handleAnswer = (rep, qAnswer) => {
-    if (answered.status !== "unanswered") return; // Prevent multiple answers
+  // Shuffle helpers
+  function shuffleArray(array) {
+    return array
+      .map((value) => ({ value, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ value }) => value);
+  }
 
-    const isCorrect = rep === qAnswer;
-    if (isCorrect) {
-      setScore((prev) => prev + 1);
+  function shuffleQuestions(array, maxQuestions) {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [result[i], result[j]] = [result[j], result[i]];
     }
-    setAnswered({
-      status: isCorrect ? "correct" : "incorrect",
-      selected: rep,
-    });
+    return result.slice(0, maxQuestions);
+  }
+
+  function randomizeOptions(data) {
+    return data.map((q) => ({
+      ...q,
+      options: shuffleArray([...q.options]),
+    }));
+  }
+
+  // Start game
+  const handleStart = (lang) => {
+    if (selectedLang === lang) return;
+    setSelectedLang(lang);
+    setLoading(true);
+  };
+
+  // Next question
+  const goToNextQuestion = () => {
+    if (usedIndices.length >= maxQuestions) return;
+    const nextIndex = getUniqueRandomIndex(usedIndices, questions.length);
+    if (nextIndex !== null) {
+      setCurrentIndex(nextIndex);
+      setUsedIndices((prev) => [...prev, nextIndex]);
+      setAnswered({ status: "unanswered", selected: null });
+      setReset(false);
+    }
+  };
+
+  // Answer handler
+  const handleAnswer = (rep, qAnswer) => {
+    if (answered.status !== "unanswered") return;
+    const isCorrect = rep === qAnswer;
+    if (isCorrect) setScore((prev) => prev + 1);
+    setAnswered({ status: isCorrect ? "correct" : "incorrect", selected: rep });
     setReset(false);
   };
 
@@ -136,35 +153,40 @@ function Quiz() {
     return "btn bg-zzlink";
   };
 
+  // Theme toggle
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+
   // Start screen
   const startGame = () => (
     <>
       <div className="boxTimer"></div>
       <div className="boxTitle text-center">
-        <h2 className="font-extrabold text-3xl md:text-4xl">
-          World Capitals Quiz
-        </h2>
-        <p className="text-xs md:text-sm">
-          Test your geography skills by matching countries to their capitals.
-        </p>
-        <p className="text-xs md:text-sm">20 questions</p>
+        <h2 className="font-extrabold text-3xl md:text-4xl">{t("title")}</h2>
+        <p className="text-xs md:text-sm">{t("description")}</p>
       </div>
       <div className="boxAnswer">
-        <button className="btn bg-zzlink" onClick={handleStart}>
-          Start the game
+        <button className="btn bg-zzlink" onClick={() => handleStart("en")}>
+          {t("english")}
+        </button>
+        <button className="btn bg-zzlink" onClick={() => handleStart("fr")}>
+          {t("francais")}
         </button>
       </div>
       <div className="boxFooter"></div>
     </>
   );
 
-  // Quiz question and answers
+  // Quiz screen
   const renderAnswers = () => {
     const q = questions[currentIndex];
-    console.log(q.capital, q.country);
-    if (!q) {
-      return <p>⚠️ Question not found at index {currentIndex}</p>;
-    }
+    if (!q)
+      return (
+        <p>
+          ⚠️ {t("erroranswer")} {currentIndex}
+        </p>
+      );
 
     const qAnswer = q.capital;
 
@@ -174,10 +196,10 @@ function Quiz() {
           <div className="boxTimer"></div>
           <div className="boxTitle text-center">
             <h2 className="font-extrabold text-3xl md:text-4xl">
-              Quiz Completed!
+              {t("completed")}
             </h2>
             <p className="font-extrabold text-sm">
-              You got {score} out of {maxQuestions} correct.
+              {t("1")} {score} {t("2")} {maxQuestions} {t("3")}
             </p>
           </div>
           <div className="boxAnswer">
@@ -185,7 +207,7 @@ function Quiz() {
               className="btn bg-zzlink mt-4"
               onClick={() => window.location.reload()}
             >
-              Restart Quiz
+              {t("restart")}
             </button>
           </div>
           <div className="boxFooter"></div>
@@ -200,16 +222,18 @@ function Quiz() {
         </div>
         <div className="boxTitle">
           <h2 className="font-extrabold text-xl md:text-2xl">
-            What's the capital of {q.country} ?
+            {t("answer")} {q.country}?
           </h2>
         </div>
         <div className="boxAnswer">
           {q.options.map((rep, i) => (
             <button
+              key={i}
               onClick={() => handleAnswer(rep, qAnswer)}
               className={getButtonClass(rep, qAnswer)}
-              key={i}
               disabled={answered.status !== "unanswered"}
+              role="button"
+              aria-pressed={answered.selected === rep}
               aria-label={`Answer option ${rep}`}
             >
               {rep}
@@ -225,21 +249,37 @@ function Quiz() {
   return (
     <div className="Zscreen bg-zzlighthighcontrast dark:bg-zzdarkhighcontrast">
       <div className="ZboxGeneral bg-zzlightlowcontrast dark:bg-zzdarklowcontrast text-zzlightbase dark:text-zzdarkbase">
-        {questions.length === 0 ? (
-          <p>⏳ Loading questions...</p>
+        {loading ? (
+          <p>⏳ Loading quiz...</p>
         ) : gameStarted ? (
           renderAnswers()
         ) : (
           startGame()
         )}
       </div>
-      <div className="fixed bottom-5 right-5 md:right-10 text-2xl md:text-3xl text-zzlightbase dark:text-zzdarkbase">
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="toggle-color toggle-mode"
-        >
+      <div className="fixed bottom-5 right-5 md:right-10 text-2xl md:text-3xl text-zzlightbase dark:text-zzdarkbase flex flex-row gap-5">
+        <button onClick={toggleTheme} className="toggle-color toggle-mode">
           {theme === "dark" ? <GrSun /> : <FiMoon />}
         </button>
+
+        <div>
+          <p
+            className={`cursor-pointer ${
+              i18n.language === "fr" ? "hidden" : ""
+            } `}
+            onClick={() => i18n.changeLanguage("fr")}
+          >
+            Francais
+          </p>
+          <p
+            className={`cursor-pointer  ${
+              i18n.language === "en" ? "hidden" : ""
+            } `}
+            onClick={() => i18n.changeLanguage("en")}
+          >
+            English
+          </p>
+        </div>
       </div>
     </div>
   );
