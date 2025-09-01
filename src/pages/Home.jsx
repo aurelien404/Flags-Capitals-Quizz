@@ -161,11 +161,12 @@ function Quiz() {
   // Quiz question and answers
   const renderAnswers = () => {
     const q = questions[currentIndex];
+    console.log(q.capital, q.country);
     if (!q) {
       return <p>⚠️ Question not found at index {currentIndex}</p>;
     }
 
-    const qAnswer = q.answer;
+    const qAnswer = q.capital;
 
     if (usedIndices.length >= maxQuestions) {
       return (
@@ -198,7 +199,9 @@ function Quiz() {
           {usedIndices.length}/{maxQuestions}
         </div>
         <div className="boxTitle">
-          <h2 className="font-extrabold text-xl md:text-2xl">{q.question}</h2>
+          <h2 className="font-extrabold text-xl md:text-2xl">
+            What's the capital of {q.country} ?
+          </h2>
         </div>
         <div className="boxAnswer">
           {q.options.map((rep, i) => (
